@@ -1,0 +1,57 @@
+package com.zubova.asynctaskservice.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "tasks")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "event_id", nullable = false, unique = true)
+    private UUID eventId;
+
+    @Column(nullable = false, length = 255)
+    private String name;
+
+    @Column(nullable = false)
+    private Long duration;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TaskStatus status = TaskStatus.NEW;
+
+    @Column(nullable = false)
+    private Integer progress = 0;
+
+    @Column(columnDefinition = "text")
+    private String result;
+
+    @Column(name = "execution_id")
+    private UUID executionId;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "started_at")
+    private Instant startedAt;
+
+    @Column(name = "finished_at")
+    private Instant finishedAt;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
+}
