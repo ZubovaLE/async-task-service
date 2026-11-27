@@ -1,9 +1,6 @@
 package com.zubova.asynctaskservice.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.UUID;
@@ -20,6 +17,7 @@ public class TaskRequestDTO {
 
     @NotNull(message = "Длительность обязательна")
     @Positive(message = "Длительность должна быть положительной")
+    @Max(value = 60_000, message = "Длительность не должна превышать 60000 мс")
     private Long duration;
 
 }
