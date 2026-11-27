@@ -18,20 +18,20 @@ public class TaskClaimService {
 
     private final TaskRepository taskRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, timeout = 5)
     public Optional<TaskRun> claimNextTask() {
         return taskRepository.findAndLockFirstNewTask()
-            .map(task -> {
-                task.setStatus(TaskStatus.IN_PROGRESS);
-                task.setExecutionId(UUID.randomUUID());
-                task.setStartedAt(Instant.now());
-                task.setFinishedAt(null);
-                task.setProgress(0);
-                task.setResult(null);
-                taskRepository.saveAndFlush(task);
+                .map(task -> {
+                    task.setStatus(TaskStatus.IN_PROGRESS);
+                    task.setExecutionId(UUID.randomUUID());
+                    task.setStartedAt(Instant.now());
+                    task.setFinishedAt(null);
+                    task.setProgress(0);
+                    task.setResult(null);
+                    taskRepository.saveAndFlush(task);
 
-                return new TaskRun(task.getId(), task.getExecutionId(), task.getDuration());
-            });
+                    return new TaskRun(task.getId(), task.getExecutionId(), task.getDuration());
+                });
     }
 
 }

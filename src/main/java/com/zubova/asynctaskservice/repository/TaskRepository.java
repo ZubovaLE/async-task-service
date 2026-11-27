@@ -1,12 +1,14 @@
 package com.zubova.asynctaskservice.repository;
 
 import com.zubova.asynctaskservice.model.Task;
+import com.zubova.asynctaskservice.model.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,5 +34,43 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)
     Optional<Task> findAndLockFirstNewTask();
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Task t
+            SET t.progress = :progress, t.version = t.version + 1
+            WHERE t.id = :id
+              AND t.executionId = :executionId
+              AND t.status = :runningStatus
+              AND t.progress <= :progress
+            """)
+    int updateProgress(
+            @Param("id") Long id,
+            @Param("executionId") UUID executionId,
+            @Param("runningStatus") TaskStatus runningStatus,
+            @Param("progress") int progress
+    );
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Task t
+            SET t.status = :newStatus,
+                t.progress = :progress,
+                t.result = :result,
+                t.finishedAt = :finishedAt,
+                t.version = t.version + 1
+            WHERE t.id = :id
+              AND t.executionId = :executionId
+              AND t.status = :runningStatus
+            """)
+    int finishExecution(
+            @Param("id") Long id,
+            @Param("executionId") UUID executionId,
+            @Param("runningStatus") TaskStatus runningStatus,
+            @Param("newStatus") TaskStatus newStatus,
+            @Param("progress") int progress,
+            @Param("result") String result,
+            @Param("finishedAt") Instant finishedAt
+    );
 
 }
