@@ -34,7 +34,7 @@ public class TaskListener {
             throw new ConstraintViolationException(violations);
         }
 
-        if (record.key() != null && !record.key().equals(dto.getEventId().toString())) {
+        if (record.key() != null && !record.key().equals(dto.eventId().toString())) {
             throw new InvalidTaskMessageException("Ключ Kafka не совпадает с eventId");
         }
 

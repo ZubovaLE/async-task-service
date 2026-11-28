@@ -16,14 +16,14 @@ public class TaskRegistrationService {
 
     @Transactional
     public void register(TaskRequestDTO dto) {
-        String normalizedName = dto.getName().strip();
-        int inserted = taskRepository.insertIfAbsent(dto.getEventId(), normalizedName, dto.getDuration());
+        String normalizedName = dto.name().strip();
+        int inserted = taskRepository.insertIfAbsent(dto.eventId(), normalizedName, dto.duration());
 
         if (inserted == 0) {
-            Task existing = taskRepository.findByEventId(dto.getEventId())
-                .orElseThrow(() -> new IllegalStateException("Запись события не найдена"));
+            Task existing = taskRepository.findByEventId(dto.eventId())
+                    .orElseThrow(() -> new IllegalStateException("Запись события не найдена"));
 
-            if (!existing.getName().equals(normalizedName) || !existing.getDuration().equals(dto.getDuration())) {
+            if (!existing.getName().equals(normalizedName) || !existing.getDuration().equals(dto.duration())) {
                 throw new InvalidTaskMessageException("eventId уже зарегистрирован с другими параметрами");
             }
         }

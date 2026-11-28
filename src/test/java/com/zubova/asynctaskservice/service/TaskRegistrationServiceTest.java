@@ -59,7 +59,7 @@ class TaskRegistrationServiceTest {
     void register_whenNewEvent_shouldCreateTask() {
         UUID eventId = UUID.randomUUID();
 
-        taskRegistrationService.register(createRequest(eventId, "task", 1000L));
+        taskRegistrationService.register(new TaskRequestDTO(eventId, "task", 1000L));
 
         Task task = taskRepository.findByEventId(eventId).orElseThrow();
         assertAll(
@@ -75,7 +75,7 @@ class TaskRegistrationServiceTest {
     @Test
     void register_whenDuplicateEvent_shouldNotCreateAnotherTask() {
         UUID eventId = UUID.randomUUID();
-        TaskRequestDTO request = createRequest(eventId, "task", 1000L);
+        TaskRequestDTO request = new TaskRequestDTO(eventId, "task", 1000L);
 
         taskRegistrationService.register(request);
         taskRegistrationService.register(request);
@@ -87,10 +87,10 @@ class TaskRegistrationServiceTest {
     void register_whenNormalizedNameMatches_shouldNotDuplicateTask() {
         UUID eventId = UUID.randomUUID();
 
-        TaskRequestDTO request1 = createRequest(eventId, "task", 1000L);
+        TaskRequestDTO request1 = new TaskRequestDTO(eventId, "task", 1000L);
         taskRegistrationService.register(request1);
 
-        TaskRequestDTO request2 = createRequest(eventId, "  task ", 1000L);
+        TaskRequestDTO request2 = new TaskRequestDTO(eventId, "  task ", 1000L);
         taskRegistrationService.register(request2);
 
         assertEquals(1L, taskRepository.count());
@@ -102,11 +102,11 @@ class TaskRegistrationServiceTest {
         String name = "task";
         long duration = 1000L;
 
-        taskRegistrationService.register(createRequest(eventId, name, duration));
+        taskRegistrationService.register(new TaskRequestDTO(eventId, name, duration));
 
         assertThrows(
                 InvalidTaskMessageException.class,
-                () -> taskRegistrationService.register(createRequest(eventId, "another-name", duration))
+                () -> taskRegistrationService.register(new TaskRequestDTO(eventId, "another-name", duration))
         );
 
         Task savedTask = taskRepository.findByEventId(eventId).orElseThrow();
@@ -123,11 +123,11 @@ class TaskRegistrationServiceTest {
         String name = "task";
         long duration = 1000L;
 
-        taskRegistrationService.register(createRequest(eventId, name, duration));
+        taskRegistrationService.register(new TaskRequestDTO(eventId, name, duration));
 
         assertThrows(
                 InvalidTaskMessageException.class,
-                () -> taskRegistrationService.register(createRequest(eventId, name, 900L))
+                () -> taskRegistrationService.register(new TaskRequestDTO(eventId, name, 900L))
         );
 
         Task savedTask = taskRepository.findByEventId(eventId).orElseThrow();
@@ -156,7 +156,7 @@ class TaskRegistrationServiceTest {
                         ready.countDown();
                         start.await();
 
-                        taskRegistrationService.register(createRequest(eventId, name, duration));
+                        taskRegistrationService.register(new TaskRequestDTO(eventId, name, duration));
                         return null;
                     }));
                 }
@@ -183,18 +183,10 @@ class TaskRegistrationServiceTest {
 
     @Test
     void register_whenDifferentEventsHaveSameParameters_shouldCreateTwoTasks() {
-        taskRegistrationService.register(createRequest(UUID.randomUUID(), "task", 1000L));
-        taskRegistrationService.register(createRequest(UUID.randomUUID(), "task", 1000L));
+        taskRegistrationService.register(new TaskRequestDTO(UUID.randomUUID(), "task", 1000L));
+        taskRegistrationService.register(new TaskRequestDTO(UUID.randomUUID(), "task", 1000L));
 
         assertEquals(2L, taskRepository.count());
-    }
-
-    private TaskRequestDTO createRequest(UUID eventId, String name, long duration) {
-        TaskRequestDTO dto = new TaskRequestDTO();
-        dto.setEventId(eventId);
-        dto.setName(name);
-        dto.setDuration(duration);
-        return dto;
     }
 
 }
